@@ -1,4 +1,4 @@
-package com.lixiuxaing.seckill.common.redis;
+package com.lxx.seckill.common.redis;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.PropertyAccessor;

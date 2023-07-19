@@ -1,4 +1,4 @@
-package com.lixiuxaing.seckill.exception;
+package com.lxx.seckill.exception;
 
 import java.io.Serializable;
 

@@ -1,4 +1,4 @@
-package com.lixiuxaing.seckill.common.result;
+package com.lxx.seckill.common.result;
 
 import java.util.HashMap;
 import java.util.Map;

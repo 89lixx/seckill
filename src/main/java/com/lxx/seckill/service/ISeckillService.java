@@ -1,7 +1,7 @@
-package com.lixiuxaing.seckill.entity.service;
+package com.lxx.seckill.service;
 
-import com.lixiuxaing.seckill.common.result.Result;
-import com.lixiuxaing.seckill.entity.Seckill;
+import com.lxx.seckill.common.result.Result;
+import com.lxx.seckill.entity.Seckill;
 
 import java.util.List;
 
@@ -34,4 +34,12 @@ public interface ISeckillService {
     void deleteSeckill(long seckillId);
 
     Result startSeckill(long seckillId, long userId);
+
+    Result startSeckillLock(long seckillId, long userId);
+
+    Result startSeckillLockTransactional(long seckillId, long userId);
+
+    Result startSeckillAopLock(long seckillId, long userId);
+
+    Result startSeckillDataLock(long seckillId, long userId);
 }

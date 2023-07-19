@@ -1,4 +1,4 @@
-package com.lixiuxaing.seckill.common.redis;
+package com.lxx.seckill.common.redis;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -7,7 +7,6 @@ import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
-import javax.swing.*;
 import java.io.Serializable;
 import java.util.concurrent.TimeUnit;
 

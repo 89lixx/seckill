@@ -1,4 +1,4 @@
-package com.lixiuxaing.seckill.entity;
+package com.lxx.seckill.entity;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;

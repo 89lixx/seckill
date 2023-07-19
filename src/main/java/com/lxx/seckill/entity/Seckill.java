@@ -1,4 +1,4 @@
-package com.lixiuxaing.seckill.entity;
+package com.lxx.seckill.entity;
 
 import javax.persistence.*;
 import java.io.Serializable;

@@ -1,4 +1,4 @@
-package com.lixiuxaing.seckill.enums;
+package com.lxx.seckill.enums;
 
 /**
  * @Author: lixiuxiang3

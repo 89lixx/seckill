@@ -1,4 +1,4 @@
-package com.lixiuxaing.seckill;
+package com.lxx.seckill;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
