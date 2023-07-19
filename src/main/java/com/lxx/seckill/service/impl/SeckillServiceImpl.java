@@ -1,5 +1,6 @@
 package com.lxx.seckill.service.impl;
 
+import com.lxx.seckill.aop.ServiceLimit;
 import com.lxx.seckill.aop.ServiceLock;
 import com.lxx.seckill.common.dynamicquery.DynamicQuery;
 import com.lxx.seckill.common.result.Result;
@@ -90,35 +91,6 @@ public class SeckillServiceImpl implements ISeckillService {
         }
     }
 
-//    @Override
-//    @Transactional(rollbackFor = Exception.class)
-//    public Result startSeckillLock(long seckillId, long userId) {
-//        lock.lock();
-//        //校验库存
-//        String nativeSql = "SELECT number FROM Seckill WHERE seckill_id=?";
-//        Object object = dynamicQuery.nativeQueryObject(nativeSql, new Object[]{seckillId});
-//        Long number = ((Number)object).longValue();
-//
-//        if (number > 0) {
-//            nativeSql = "UPDATE Seckill  SET number=number-1 WHERE seckill_id=?";
-//            dynamicQuery.nativeExecuteUpdate(nativeSql, new Object[]{seckillId});
-//
-//            // 创建订单
-//            SuccessKilled killed = new SuccessKilled();
-//            killed.setUserId(userId);
-//            killed.setSeckillId(seckillId);
-//            killed.setCreateTime(new Timestamp(System.currentTimeMillis()));
-//            killed.setState((short) 0);
-//            dynamicQuery.save(killed);
-//            lock.unlock();
-//            //支付
-//            return Result.ok(SeckillStatusEnum.SUCCESS);
-//        } else {
-//            lock.unlock();
-//            return Result.error(SeckillStatusEnum.END);
-//        }
-//    }
-
     @Override
     public Result startSeckillLock(long seckillId, long userId) {
 
@@ -191,6 +163,7 @@ public class SeckillServiceImpl implements ISeckillService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
+    @ServiceLimit(limitType = ServiceLimit.LimitType.CUSTOMER)
     public Result startSeckillDataLock(long seckillId, long userId) {
         String nativeSql = "SELECT number FROM seckill WHERE seckill_id=? FOR UPDATE";
         Object object = dynamicQuery.nativeQueryObject(nativeSql, new Object[]{seckillId});
@@ -213,5 +186,55 @@ public class SeckillServiceImpl implements ISeckillService {
         } else {
             return Result.error(SeckillStatusEnum.END);
         }
+    }
+
+    /**
+     * SHOW STATUS LIKE 'innodb_row_lock%';
+     * 如果发现锁争用比较严重，如InnoDB_row_lock_waits和InnoDB_row_lock_time_avg的值比较高
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Result startSeckillDataLock2(long seckillId, long userId) {
+        /**
+         * 单用户抢购一件商品没有问题、但是抢购多件商品不建议这种写法 UPDATE锁表
+         */
+        String nativeSql = "UPDATE seckill  SET number=number-1 WHERE seckill_id=? AND number>0";
+        int count = dynamicQuery.nativeExecuteUpdate(nativeSql, new Object[]{seckillId});
+        if(count>0){
+            SuccessKilled killed = new SuccessKilled();
+            killed.setSeckillId(seckillId);
+            killed.setUserId(userId);
+            killed.setState((short)0);
+            killed.setCreateTime(new Timestamp(System.currentTimeMillis()));
+            dynamicQuery.save(killed);
+            return Result.ok(SeckillStatusEnum.SUCCESS);
+        }else{
+            return Result.error(SeckillStatusEnum.END);
+        }
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Result startSeckillDataLock3(long seckillId, long userId, long number) {
+        // 乐观锁实现，通过控制版本来进行更新
+        Seckill kill = seckillRepository.findOne(seckillId);
+
+        if (kill.getNumber() < number) {
+            return Result.error(SeckillStatusEnum.END);
+        }
+
+        //乐观锁
+        String nativeSql = "UPDATE seckill  SET number=number-?,version=version+1 WHERE seckill_id=? AND version = ?";
+        int count = dynamicQuery.nativeExecuteUpdate(nativeSql, new Object[]{number,seckillId,kill.getVersion()});
+        if(count<=0){
+            return Result.error(SeckillStatusEnum.END);
+        }
+        SuccessKilled killed = new SuccessKilled();
+        killed.setSeckillId(seckillId);
+        killed.setUserId(userId);
+        killed.setState((short)0);
+        killed.setCreateTime(new Timestamp(System.currentTimeMillis()));
+        dynamicQuery.save(killed);
+        return Result.ok(SeckillStatusEnum.SUCCESS);
     }
 }

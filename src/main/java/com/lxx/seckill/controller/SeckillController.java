@@ -200,4 +200,82 @@ public class SeckillController {
         }
         return Result.ok();
     }
+
+    @ApiOperation(value="秒杀五-- 数据库悲观锁 先去判断数据是否改变",nickname = "lxx")
+    @PostMapping("/startDataLock2")
+    public Result startDataLock2(long seckillId) {
+        int killNum = 1000;
+        final CountDownLatch latch = new CountDownLatch(killNum);
+        seckillService.deleteSeckill(seckillId);
+        final long killId = seckillId;
+        LOGGER.info("秒杀四开始");
+        Long currentTime = System.currentTimeMillis();
+
+        for (int i = 0; i < killNum; ++ i) {
+            final long userId = i;
+            Runnable task = () -> {
+                try {
+                    Result result = seckillService.startSeckillDataLock2(killId, userId);
+                    if (result != null) {
+                        LOGGER.info("用户:{}{}",userId,result.get("msg"));
+                    } else {
+                        LOGGER.info("用户:{}{}",userId,"哎呦喂，人也太多了，请稍后！");
+                    }
+                } catch (RrException e) {
+                    LOGGER.error("哎呀报错了{}",e.getMsg());
+                }
+                latch.countDown();
+            };
+            executor.execute(task);
+        }
+        try {
+            latch.await();
+            Long seckillCount = seckillService.getSeckillCount(seckillId);
+            LOGGER.info("一共秒杀出{}件商品",seckillCount);
+            Long endTime = System.currentTimeMillis();
+            LOGGER.info("一共使用时间{}",endTime-currentTime);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        return Result.ok();
+    }
+
+    @ApiOperation(value="秒杀六-- 数据库乐观锁，控制版本实现",nickname = "lxx")
+    @PostMapping("/startDataLock3")
+    public Result startDataLock3(long seckillId) {
+        int killNum = 1000;
+        final CountDownLatch latch = new CountDownLatch(killNum);
+        seckillService.deleteSeckill(seckillId);
+        final long killId = seckillId;
+        LOGGER.info("秒杀四开始");
+        Long currentTime = System.currentTimeMillis();
+
+        for (int i = 0; i < killNum; ++ i) {
+            final long userId = i;
+            Runnable task = () -> {
+                try {
+                    Result result = seckillService.startSeckillDataLock3(killId, userId,1);
+                    if (result != null) {
+                        LOGGER.info("用户:{}{}",userId,result.get("msg"));
+                    } else {
+                        LOGGER.info("用户:{}{}",userId,"哎呦喂，人也太多了，请稍后！");
+                    }
+                } catch (RrException e) {
+                    LOGGER.error("哎呀报错了{}",e.getMsg());
+                }
+                latch.countDown();
+            };
+            executor.execute(task);
+        }
+        try {
+            latch.await();
+            Long seckillCount = seckillService.getSeckillCount(seckillId);
+            LOGGER.info("一共秒杀出{}件商品",seckillCount);
+            Long endTime = System.currentTimeMillis();
+            LOGGER.info("一共使用时间{}",endTime-currentTime);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        return Result.ok();
+    }
 }

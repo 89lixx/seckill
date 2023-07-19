@@ -32,7 +32,7 @@ public class LimitAspect {
                 @Override
                 public RateLimiter load(String s) throws Exception {
                     // 新的IP初始化 每秒只发出5个令牌
-                    return RateLimiter.create(5);
+                    return RateLimiter.create(100);
                 }
             });
 

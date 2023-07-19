@@ -42,4 +42,8 @@ public interface ISeckillService {
     Result startSeckillAopLock(long seckillId, long userId);
 
     Result startSeckillDataLock(long seckillId, long userId);
+
+    Result startSeckillDataLock2(long seckillId, long userId);
+
+    Result startSeckillDataLock3(long seckillId, long userId, long number);
 }
