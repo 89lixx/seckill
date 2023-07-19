@@ -1,4 +1,4 @@
-package com.lixiuxaing.seckill.common.dynamicquery;
+package com.lxx.seckill.common.dynamicquery;
 
 import java.util.List;
 
