@@ -134,31 +134,53 @@ public class SeckillServiceImpl implements ISeckillService {
         }
     }
 
+//    @Override
+//    @ServiceLock
+//    @Transactional(rollbackFor = Exception.class)
+//    public Result startSeckillAopLock(long seckillId, long userId) {
+//        String nativeSql = "SELECT number FROM seckill WHERE seckill_id=?";
+//        Object object = dynamicQuery.nativeQueryObject(nativeSql, new Object[]{seckillId});
+//        Long number = ((Number)object).longValue();
+//
+//        if (number > 0) {
+//            nativeSql = "UPDATE seckill SET number=number-1 WHERE seckill_id=?";
+//            dynamicQuery.nativeExecuteUpdate(nativeSql, new Object[]{seckillId});
+//            // 创建订单
+//            SuccessKilled killed = new SuccessKilled();
+//            killed.setUserId(userId);
+//            killed.setSeckillId(seckillId);
+//            killed.setCreateTime(new Timestamp(System.currentTimeMillis()));
+//            killed.setState((short) 0);
+//            dynamicQuery.save(killed);
+//
+//            //支付
+//            return Result.ok(SeckillStatusEnum.SUCCESS);
+//        } else {
+//            return Result.error(SeckillStatusEnum.END);
+//        }
+//    }
+
     @Override
     @ServiceLock
     @Transactional(rollbackFor = Exception.class)
     public Result startSeckillAopLock(long seckillId, long userId) {
+        //来自码云码友<马丁的早晨>的建议 使用AOP + 锁实现
         String nativeSql = "SELECT number FROM seckill WHERE seckill_id=?";
-        Object object = dynamicQuery.nativeQueryObject(nativeSql, new Object[]{seckillId});
-        Long number = ((Number)object).longValue();
-
-        if (number > 0) {
-            nativeSql = "UPDATE seckill SET number=number-1 WHERE seckill_id=?";
+        Object object =  dynamicQuery.nativeQueryObject(nativeSql, new Object[]{seckillId});
+        Long number =  ((Number) object).longValue();
+        if(number>0){
+            nativeSql = "UPDATE seckill  SET number=number-1 WHERE seckill_id=?";
             dynamicQuery.nativeExecuteUpdate(nativeSql, new Object[]{seckillId});
-
-            // 创建订单
             SuccessKilled killed = new SuccessKilled();
-            killed.setUserId(userId);
             killed.setSeckillId(seckillId);
+            killed.setUserId(userId);
+            killed.setState(Short.parseShort(number+""));
             killed.setCreateTime(new Timestamp(System.currentTimeMillis()));
-            killed.setState((short) 0);
             dynamicQuery.save(killed);
-
-            //支付
-            return Result.ok(SeckillStatusEnum.SUCCESS);
-        } else {
+        }else{
             return Result.error(SeckillStatusEnum.END);
         }
+        return Result.ok(SeckillStatusEnum.SUCCESS);
     }
 
     @Override

@@ -273,6 +273,7 @@ public class SeckillController {
             LOGGER.info("一共秒杀出{}件商品",seckillCount);
             Long endTime = System.currentTimeMillis();
             LOGGER.info("一共使用时间{}",endTime-currentTime);
+
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
